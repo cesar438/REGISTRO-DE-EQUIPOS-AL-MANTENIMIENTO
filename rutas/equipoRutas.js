@@ -1,8 +1,9 @@
 const express = require('express');
 const rutas = express.Router();
 const EquipoModel = require('../models/Equipo');
+const UsuarioModel = require('../models/Usuario');
 
-//endpoint 1.  traer todas las recetas
+//endpoint 1.  traer todas las equipos
 rutas.get('/mostrarEquipos', async (req, res) => {
     try  {
         const equipos = await  EquipoModel.find();
@@ -89,7 +90,7 @@ rutas.delete('/eliminarTodos', async (req, res) => {
 rutas.get('/registroTotal', async (req, res) => {
     try {
         const registro = await EquipoModel.countDocuments();
-        return res.json({RegistroTotal: registro });
+        return res.json({RegistroHastaLaFecha: registro });
     } catch(error) {
         res.status(500).json({ mensaje :  error.message})
     }
@@ -112,4 +113,49 @@ rutas.get('/equiposPorCantidad/:cantidad', async (req, res) => {
         res.status(500).json({ mensaje :  error.message})
     }
 });
+///......USUARIO
+//REPORTES 1
+rutas.get('/equipoPorUsuario/:usuarioId', async (peticion, respuesta) =>{
+    const {usuarioId} = peticion.params;
+    console.log(usuarioId);
+    try{
+        const usuario = await UsuarioModel.findById(usuarioId);
+        if (!usuario)
+            return respuesta.status(404).json({mensaje: 'usuario no encontrado'});
+        const equipos = await EquipoModel.find({ usuario: usuarioId}).populate('usuario');
+        respuesta.json(equipos);
+
+    } catch(error){
+        respuesta.status(500).json({ mensaje :  error.message})
+    }
+})
+
+//REPORTES 2
+//sumar cantidad de recetas por Usuarios
+rutas.get('/cantidadPorUsuario', async (req, res) => {
+    try {   
+        const usuarios = await UsuarioModel.find();
+        const reporte = await Promise.all(
+            usuarios.map( async ( usuario1 ) => {
+                const equipos = await EquipoModel.find({ usuario: usuario1._id});
+                const totalCantidad = equipos.reduce((sum, equipos) => sum + equipos.Cantidad, 0);
+                return {
+                    usuario: {
+                        _id: usuario1._id,
+                        nombreusuario: usuario1.nombreusuario
+                    },
+                    totalCantidad,
+                    equipos: equipos.map( r => ( {
+                        _id: r._id,
+                        nombre: r.Nombre,
+                        cantidad: r.Cantidad
+                    }))
+                }
+            } )
+        )
+        res.json(reporte);
+    } catch (error){
+        res.status(500).json({ mensaje :  error.message})
+    }
+})
 module.exports = rutas;

@@ -22,7 +22,7 @@ const usuarioSchema = new mongoose.Schema({
 usuarioSchema.pre('save', async function (next){
     if (this.isModified('contraseña')){
         this.contraseña =  await bcrypt.hash(this.contraseña, 10);
-        console.log(this.contraseña);
+        
     }
     next();
 });
@@ -31,5 +31,5 @@ usuarioSchema.methods.compararContraseña = async function  ( contraseñaCompara
     return await bcrypt.compare(contraseñaComparar, this.contraseña);
 };
 
-const UsuarioModel = mongoose.model('Usuario',usuarioSchema, 'usuario');
+const UsuarioModel = mongoose.model('usuario',usuarioSchema, 'Usuario');
 module.exports = UsuarioModel;

@@ -69,6 +69,12 @@ describe('Pruebas Unitarias para Equipos', () => {
     });
    
     test('Deberia eliminar una tarea existente : DELETE /eliminar/:id', async() =>{
+        const equipoCreada2 = await EquipoModel.create(
+            { Nombre: 'impresora 2', 
+              Tipo: 'canom 2', 
+              Observaciones: 'malo 2',
+              Cantidad: 10,
+              Fecha: '03/02/2023' });
         const equipoCreada = await EquipoModel.create(
             { Nombre: 'impresora', 
               Tipo: 'canom', 
